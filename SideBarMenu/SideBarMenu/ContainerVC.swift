@@ -27,10 +27,6 @@ class ContainerVC: UIViewController {
     var leffPanelVC : LeftSidePanelVC?
     let centerVCExpandedOffset : CGFloat = 60
     
-    
-    
-    
-    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -42,13 +38,19 @@ class ContainerVC: UIViewController {
         
         centerNavigationVC.didMoveToParentViewController(self)
         
+        //gesture recognizer
+        let panGestureRecognizer = UIPanGestureRecognizer(target: self, action: "handlePanGesture:")
+        centerNavigationVC.view.addGestureRecognizer(panGestureRecognizer)
+        
         
     }
     
+    
+    
     func animateCenterPanelXPosition(targetPosition targetPosition: CGFloat, completion: ((Bool) -> Void)! = nil) {
-        UIView.animateWithDuration(0.4, delay: 0, usingSpringWithDamping: 0.8, initialSpringVelocity: 0, options: .CurveEaseInOut, animations:
+        UIView.animateWithDuration(0.4, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0, options: .CurveEaseInOut, animations:
             {
-            self.centerNavigationVC.view.frame.origin.x = targetPosition
+                self.centerNavigationVC.view.frame.origin.x = targetPosition
             }, completion: completion)
     }
     func showShadowForCenterViewController(shouldShowShadow: Bool) {
@@ -61,7 +63,8 @@ class ContainerVC: UIViewController {
 }
 
 
-extension ContainerVC: CenterVCDelegate {
+
+extension ContainerVC: CenterVCDelegate, UIGestureRecognizerDelegate{
     
     func togglePanel(){
         let notAlreadyExpanded = currentState != .panelExpanded
@@ -91,28 +94,65 @@ extension ContainerVC: CenterVCDelegate {
             
             currentState = .panelExpanded
             animateCenterPanelXPosition(targetPosition: CGRectGetWidth(centerNavigationVC.view.frame) - centerVCExpandedOffset)
-            }else{
-                animateCenterPanelXPosition(targetPosition : 0){ finished in
-                    self.currentState = .panelCollapsed
-                    self.leffPanelVC!.view.removeFromSuperview()
-                    self.leffPanelVC = nil
+        }else{
+            animateCenterPanelXPosition(targetPosition : 0){ finished in
+                self.currentState = .panelCollapsed
+                self.leffPanelVC!.view.removeFromSuperview()
+                self.leffPanelVC = nil
+                
+            }
+        }
+    }
+    
+    func handlePanGesture(recognizer: UIPanGestureRecognizer){
+        
+        let userIsDraggingFromLeftToRight = (recognizer.velocityInView(view).x > 0)
+        
+        switch(recognizer.state) {
+        case .Began:
+            if (currentState == .panelCollapsed) {
+                if userIsDraggingFromLeftToRight {
+                    addLeftPanelViewController()
+                } else {
                     
                 }
+                
+                showShadowForCenterViewController(true)
             }
-        }  
+        case .Changed:
+            if userIsDraggingFromLeftToRight{
+                recognizer.view!.center.x = recognizer.view!.center.x + recognizer.translationInView(view).x
+                recognizer.setTranslation(CGPointZero, inView: view)
+            }else if currentState == .panelExpanded{
+                recognizer.view!.center.x = recognizer.view!.center.x + recognizer.translationInView(view).x
+                recognizer.setTranslation(CGPointZero, inView: view)
+
+            }
+        case .Ended:
+            if leffPanelVC != nil{
+                let viewMovedMoreThanHalfWay = recognizer.view!.center.x > view.bounds.width
+                animateLeftPanel(viewMovedMoreThanHalfWay)
+                
+            }
+        default:
+            break
+        }
     }
     
 
-    private extension UIStoryboard {
-        class func mainStoryboard() -> UIStoryboard {
-            return UIStoryboard(name: "Main", bundle: NSBundle.mainBundle())
-        }
-        
-        class func leftVC() -> LeftSidePanelVC? {
-            return mainStoryboard().instantiateViewControllerWithIdentifier("leftVC") as? LeftSidePanelVC
-        }
-        
-        class func centerVC() -> CenterVC? {
-            return mainStoryboard().instantiateViewControllerWithIdentifier("centerVC") as? CenterVC
-        }
+    
+}
+
+private extension UIStoryboard {
+    class func mainStoryboard() -> UIStoryboard {
+        return UIStoryboard(name: "Main", bundle: NSBundle.mainBundle())
+    }
+    
+    class func leftVC() -> LeftSidePanelVC? {
+        return mainStoryboard().instantiateViewControllerWithIdentifier("leftVC") as? LeftSidePanelVC
+    }
+    
+    class func centerVC() -> CenterVC? {
+        return mainStoryboard().instantiateViewControllerWithIdentifier("centerVC") as? CenterVC
+    }
 }
