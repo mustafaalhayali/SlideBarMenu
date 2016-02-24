@@ -38,8 +38,4 @@ class LeftSidePanelVC: UIViewController, UITableViewDelegate, UITableViewDataSou
     func tableView(tableView: UITableView, didDeselectRowAtIndexPath indexPath: NSIndexPath) {
         //some code to present different VCs
     }
-    
-
-
-    
 }
