@@ -17,15 +17,16 @@ protocol CenterVCDelegate {
 
 class CenterVC: UIViewController {
     
+    var delegate : CenterVCDelegate?
     
     @IBAction func showMenuPressed(sender: AnyObject) {
-        
+        delegate?.togglePanel?()
     }
     
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        var delegate : CenterVCDelegate?
+        
         
         
     }
