@@ -14,7 +14,7 @@ enum SlideState {
     case panelExpanded
 }
 
-class ContainerVC: UIViewController {
+class ContainerVC: UIViewController, CenterVCDelegate, UIGestureRecognizerDelegate {
     
     //MARK: Variables
     var centerNavigationVC : UINavigationController!
@@ -26,7 +26,7 @@ class ContainerVC: UIViewController {
         }
     }
     var leffPanelVC : LeftSidePanelVC?
-    let centerVCExpandedOffset : CGFloat = 60
+    let centerVCExpandedOffset : CGFloat = 120
     
     
     //MARK: Functions
@@ -49,7 +49,39 @@ class ContainerVC: UIViewController {
         
     }
     
+    
+    func handlePanGesture(recognizer: UIPanGestureRecognizer){
+        
+        let userIsDraggingFromLeftToRight = (recognizer.velocityInView(view).x > 0)
+        
+        switch(recognizer.state) {
+        case .Began:
+            if (currentState == .panelCollapsed) {
+                if userIsDraggingFromLeftToRight {
+                    addLeftPanelViewController()
+                }
+                showShadowForCenterViewController(true)
+            }
+        case .Changed:
+            if userIsDraggingFromLeftToRight{
+                recognizer.view!.center.x = recognizer.view!.center.x + recognizer.translationInView(view).x
+                recognizer.setTranslation(CGPointZero, inView: view)
+            }else if currentState == .panelExpanded{
+                recognizer.view!.center.x = recognizer.view!.center.x + recognizer.translationInView(view).x
+                recognizer.setTranslation(CGPointZero, inView: view)
+            }
+        case .Ended:
+            if leffPanelVC != nil{
+                let viewMovedMoreThanHalfWay = recognizer.view!.center.x > view.bounds.width
+                animateLeftPanel(viewMovedMoreThanHalfWay)
+            }
+        default:
+            break
+        }
+    }
 
+    
+    //MARK: Animation Functions
     func animateCenterPanelXPosition(targetPosition targetPosition: CGFloat, completion: ((Bool) -> Void)! = nil) {
         UIView.animateWithDuration(0.4, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0, options: .CurveEaseInOut, animations:
             {
@@ -63,13 +95,24 @@ class ContainerVC: UIViewController {
             centerNavigationVC.view.layer.shadowOpacity = 0.0
         }
     }
-}
-
-
-//MARK: Extensions
-
-extension ContainerVC: CenterVCDelegate, UIGestureRecognizerDelegate{
     
+    func animateLeftPanel(shouldExpand: Bool) {
+        if shouldExpand{
+            
+            currentState = .panelExpanded
+            animateCenterPanelXPosition(targetPosition: CGRectGetWidth(centerNavigationVC.view.frame) - centerVCExpandedOffset)
+        }else{
+            animateCenterPanelXPosition(targetPosition : 0){ finished in
+                self.currentState = .panelCollapsed
+                self.leffPanelVC!.view.removeFromSuperview()
+                self.leffPanelVC = nil
+                
+            }
+        }
+    }
+
+    
+    //MARK: Delegate Functions
     func togglePanel(){
         let notAlreadyExpanded = currentState != .panelExpanded
         if notAlreadyExpanded {
@@ -93,59 +136,10 @@ extension ContainerVC: CenterVCDelegate, UIGestureRecognizerDelegate{
         sidePanelVC.didMoveToParentViewController(self)
         
     }
-    
-    func animateLeftPanel(shouldExpand: Bool) {
-        if shouldExpand{
-            
-            currentState = .panelExpanded
-            animateCenterPanelXPosition(targetPosition: CGRectGetWidth(centerNavigationVC.view.frame) - centerVCExpandedOffset)
-        }else{
-            animateCenterPanelXPosition(targetPosition : 0){ finished in
-                self.currentState = .panelCollapsed
-                self.leffPanelVC!.view.removeFromSuperview()
-                self.leffPanelVC = nil
-                
-            }
-        }
     }
-    
-    func handlePanGesture(recognizer: UIPanGestureRecognizer){
-        
-        let userIsDraggingFromLeftToRight = (recognizer.velocityInView(view).x > 0)
-        
-        switch(recognizer.state) {
-        case .Began:
-            if (currentState == .panelCollapsed) {
-                if userIsDraggingFromLeftToRight {
-                    addLeftPanelViewController()
-                } else {
-                    
-                }
-                
-                showShadowForCenterViewController(true)
-            }
-        case .Changed:
-            if userIsDraggingFromLeftToRight{
-                recognizer.view!.center.x = recognizer.view!.center.x + recognizer.translationInView(view).x
-                recognizer.setTranslation(CGPointZero, inView: view)
-            }else if currentState == .panelExpanded{
-                recognizer.view!.center.x = recognizer.view!.center.x + recognizer.translationInView(view).x
-                recognizer.setTranslation(CGPointZero, inView: view)
 
-            }
-        case .Ended:
-            if leffPanelVC != nil{
-                let viewMovedMoreThanHalfWay = recognizer.view!.center.x > view.bounds.width
-                animateLeftPanel(viewMovedMoreThanHalfWay)
-                
-            }
-        default:
-            break
-        }
-    }
-    
-}
 
+//MARK: Extensions
 private extension UIStoryboard {
     class func mainStoryboard() -> UIStoryboard {
         return UIStoryboard(name: "Main", bundle: NSBundle.mainBundle())
