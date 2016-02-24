@@ -25,8 +25,8 @@ class ContainerVC: UIViewController, CenterVCDelegate, UIGestureRecognizerDelega
             showShadowForCenterViewController(shouldShowShadow)
         }
     }
-    var leffPanelVC : LeftSidePanelVC?
-    let centerVCExpandedOffset : CGFloat = 120
+    var leftPanelVC : LeftSidePanelVC?
+    let centerVCExpandedOffset : CGFloat = 200
     
     
     //MARK: Functions
@@ -52,29 +52,59 @@ class ContainerVC: UIViewController, CenterVCDelegate, UIGestureRecognizerDelega
     
     func handlePanGesture(recognizer: UIPanGestureRecognizer){
         
-        let userIsDraggingFromLeftToRight = (recognizer.velocityInView(view).x > 0)
-        
+        let userIsDraggingFromLeftToRight = recognizer.velocityInView(view).x > 0
         switch(recognizer.state) {
         case .Began:
             if (currentState == .panelCollapsed) {
                 if userIsDraggingFromLeftToRight {
                     addLeftPanelViewController()
+                    showShadowForCenterViewController(true)
+                }else{
+                   
                 }
+            }
+        case .Changed :
+            
+            if userIsDraggingFromLeftToRight{
+                
+                let x = recognizer.view!.center.x + recognizer.translationInView(view).x
+                if x - recognizer.view!.frame.size.width / 2.0 < 0 {
+                    recognizer.view!.center.x = recognizer.view!.frame.size.width / 2.0
+                    break
+                }
+                
+                recognizer.view!.center.x = x
+                recognizer.setTranslation(CGPointZero, inView: view)
+                let userDragLeftToRightValue = recognizer.view!.center.x
+                if recognizer.velocityInView(view).x < userDragLeftToRightValue{
+                    currentState = .panelExpanded
+                }
+                
+                
+            }else if currentState == .panelExpanded{
+                
+                let x = recognizer.view!.center.x + recognizer.translationInView(view).x
+                if x - recognizer.view!.frame.size.width / 2.0 < 0 {
+                    recognizer.view!.center.x = recognizer.view!.frame.size.width / 2.0
+                    break
+                }
+                recognizer.view!.center.x = x
+                recognizer.setTranslation(CGPointZero, inView: view)
+                
+                
+            }else {
+                
+                addLeftPanelViewController()
                 showShadowForCenterViewController(true)
             }
-        case .Changed:
-            if userIsDraggingFromLeftToRight{
-                recognizer.view!.center.x = recognizer.view!.center.x + recognizer.translationInView(view).x
-                recognizer.setTranslation(CGPointZero, inView: view)
-            }else if currentState == .panelExpanded{
-                recognizer.view!.center.x = recognizer.view!.center.x + recognizer.translationInView(view).x
-                recognizer.setTranslation(CGPointZero, inView: view)
-            }
+        
+        
         case .Ended:
-            if leffPanelVC != nil{
+            if leftPanelVC != nil{
                 let viewMovedMoreThanHalfWay = recognizer.view!.center.x > view.bounds.width
                 animateLeftPanel(viewMovedMoreThanHalfWay)
             }
+        
         default:
             break
         }
@@ -104,8 +134,8 @@ class ContainerVC: UIViewController, CenterVCDelegate, UIGestureRecognizerDelega
         }else{
             animateCenterPanelXPosition(targetPosition : 0){ finished in
                 self.currentState = .panelCollapsed
-                self.leffPanelVC!.view.removeFromSuperview()
-                self.leffPanelVC = nil
+                self.leftPanelVC!.view.removeFromSuperview()
+                self.leftPanelVC = nil
                 
             }
         }
@@ -123,9 +153,9 @@ class ContainerVC: UIViewController, CenterVCDelegate, UIGestureRecognizerDelega
     
     
     func addLeftPanelViewController() {
-        if leffPanelVC == nil {
-            leffPanelVC = UIStoryboard.leftVC()
-            addChildSidePanelController(leffPanelVC!)
+        if leftPanelVC == nil {
+            leftPanelVC = UIStoryboard.leftVC()
+            addChildSidePanelController(leftPanelVC!)
         }
     }
     
