@@ -17,6 +17,7 @@ class LeftSidePanelVC: UIViewController, UITableViewDelegate, UITableViewDataSou
         super.viewDidLoad()
         
         tableView.reloadData()
+        tableView.contentInset = UIEdgeInsetsMake(32.0, 0, 0, 0)
     }
     
     
@@ -35,7 +36,7 @@ class LeftSidePanelVC: UIViewController, UITableViewDelegate, UITableViewDataSou
     }
     
     func tableView(tableView: UITableView, didDeselectRowAtIndexPath indexPath: NSIndexPath) {
-        //some code
+        //some code to present different VCs
     }
     
 

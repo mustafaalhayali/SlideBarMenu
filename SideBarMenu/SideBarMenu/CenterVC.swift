@@ -19,17 +19,8 @@ class CenterVC: UIViewController {
     
     var delegate : CenterVCDelegate?
     
+    @IBOutlet weak var navigationBar: UINavigationBar!
     @IBAction func showMenuPressed(sender: AnyObject) {
         delegate?.togglePanel?()
     }
-    
-    
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        
-        
-        
-    }
-
-   
 }

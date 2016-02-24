@@ -16,6 +16,7 @@ enum SlideState {
 
 class ContainerVC: UIViewController {
     
+    //MARK: Variables
     var centerNavigationVC : UINavigationController!
     var centerVC : CenterVC!
     var currentState : SlideState = .panelCollapsed {
@@ -27,6 +28,8 @@ class ContainerVC: UIViewController {
     var leffPanelVC : LeftSidePanelVC?
     let centerVCExpandedOffset : CGFloat = 60
     
+    
+    //MARK: Functions
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -38,6 +41,7 @@ class ContainerVC: UIViewController {
         
         centerNavigationVC.didMoveToParentViewController(self)
         
+        
         //gesture recognizer
         let panGestureRecognizer = UIPanGestureRecognizer(target: self, action: "handlePanGesture:")
         centerNavigationVC.view.addGestureRecognizer(panGestureRecognizer)
@@ -45,8 +49,7 @@ class ContainerVC: UIViewController {
         
     }
     
-    
-    
+
     func animateCenterPanelXPosition(targetPosition targetPosition: CGFloat, completion: ((Bool) -> Void)! = nil) {
         UIView.animateWithDuration(0.4, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0, options: .CurveEaseInOut, animations:
             {
@@ -63,6 +66,7 @@ class ContainerVC: UIViewController {
 }
 
 
+//MARK: Extensions
 
 extension ContainerVC: CenterVCDelegate, UIGestureRecognizerDelegate{
     
@@ -87,6 +91,7 @@ extension ContainerVC: CenterVCDelegate, UIGestureRecognizerDelegate{
         view.insertSubview(sidePanelVC.view, atIndex: 0)
         addChildViewController(sidePanelVC)
         sidePanelVC.didMoveToParentViewController(self)
+        
     }
     
     func animateLeftPanel(shouldExpand: Bool) {
@@ -138,8 +143,6 @@ extension ContainerVC: CenterVCDelegate, UIGestureRecognizerDelegate{
             break
         }
     }
-    
-
     
 }
 
