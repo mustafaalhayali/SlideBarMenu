@@ -12,6 +12,7 @@ class LeftSidePanelVC: UIViewController, UITableViewDelegate, UITableViewDataSou
 
     @IBOutlet weak var tableView: UITableView!
     
+    @IBOutlet weak var leftConstraint: NSLayoutConstraint!
     
     override func viewDidLoad() {
         super.viewDidLoad()

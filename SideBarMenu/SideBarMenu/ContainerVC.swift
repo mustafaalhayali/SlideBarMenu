@@ -26,7 +26,7 @@ class ContainerVC: UIViewController, CenterVCDelegate, UIGestureRecognizerDelega
         }
     }
     var leftPanelVC : LeftSidePanelVC?
-    let centerVCExpandedOffset : CGFloat = 200
+    var centerVCExpandedOffset : CGFloat = 200
     
     
     //MARK: Functions
@@ -46,6 +46,12 @@ class ContainerVC: UIViewController, CenterVCDelegate, UIGestureRecognizerDelega
         let panGestureRecognizer = UIPanGestureRecognizer(target: self, action: "handlePanGesture:")
         centerNavigationVC.view.addGestureRecognizer(panGestureRecognizer)
         
+        //RTL
+        if (UIView.userInterfaceLayoutDirectionForSemanticContentAttribute(view.semanticContentAttribute) == UIUserInterfaceLayoutDirection.RightToLeft) {
+            centerVCExpandedOffset = 100
+            gestureRecognizerShouldBegin(panGestureRecognizer)
+        }
+        
         
     }
     
@@ -53,6 +59,10 @@ class ContainerVC: UIViewController, CenterVCDelegate, UIGestureRecognizerDelega
     func handlePanGesture(recognizer: UIPanGestureRecognizer){
         
         let userIsDraggingFromLeftToRight = recognizer.velocityInView(view).x > 0
+        if (UIView.userInterfaceLayoutDirectionForSemanticContentAttribute(view.semanticContentAttribute) == UIUserInterfaceLayoutDirection.RightToLeft) {
+            
+        }
+
         switch(recognizer.state) {
         case .Began:
             if (currentState == .panelCollapsed) {
@@ -66,7 +76,7 @@ class ContainerVC: UIViewController, CenterVCDelegate, UIGestureRecognizerDelega
         case .Changed :
             
             if userIsDraggingFromLeftToRight{
-                
+
                 let x = recognizer.view!.center.x + recognizer.translationInView(view).x
                 if x - recognizer.view!.frame.size.width / 2.0 < 0 {
                     recognizer.view!.center.x = recognizer.view!.frame.size.width / 2.0
@@ -93,9 +103,7 @@ class ContainerVC: UIViewController, CenterVCDelegate, UIGestureRecognizerDelega
                 
                 
             }else {
-                
-                addLeftPanelViewController()
-                showShadowForCenterViewController(true)
+            
             }
         
         
@@ -115,7 +123,12 @@ class ContainerVC: UIViewController, CenterVCDelegate, UIGestureRecognizerDelega
     func animateCenterPanelXPosition(targetPosition targetPosition: CGFloat, completion: ((Bool) -> Void)! = nil) {
         UIView.animateWithDuration(0.4, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0, options: .CurveEaseInOut, animations:
             {
-                self.centerNavigationVC.view.frame.origin.x = targetPosition
+                //RTL
+                if (UIView.userInterfaceLayoutDirectionForSemanticContentAttribute(self.view.semanticContentAttribute) == UIUserInterfaceLayoutDirection.RightToLeft) {
+                    self.centerNavigationVC.view.frame.origin.x = -targetPosition
+                }else{
+                    self.centerNavigationVC.view.frame.origin.x = targetPosition
+                }
             }, completion: completion)
     }
     func showShadowForCenterViewController(shouldShowShadow: Bool) {
@@ -166,7 +179,22 @@ class ContainerVC: UIViewController, CenterVCDelegate, UIGestureRecognizerDelega
         sidePanelVC.didMoveToParentViewController(self)
         
     }
+    
+    
+    //MARK: RTL
+
+    func gestureRecognizerShouldBegin(gestureRecognizer: UIGestureRecognizer) -> Bool {
+        if let panGestureRecognizer = gestureRecognizer as? UIPanGestureRecognizer {
+            let translation = panGestureRecognizer.translationInView(view).x
+            let isLeftToRightLayout = UIView.userInterfaceLayoutDirectionForSemanticContentAttribute(view.semanticContentAttribute) == .LeftToRight
+            return isLeftToRightLayout ? translation > 0 : translation < 0
+        }else{
+            return false    
+        }
     }
+}
+
+
 
 
 //MARK: Extensions
