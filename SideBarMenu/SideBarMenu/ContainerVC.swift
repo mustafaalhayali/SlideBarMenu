@@ -48,34 +48,45 @@ class ContainerVC: UIViewController, CenterVCDelegate, UIGestureRecognizerDelega
         
         //RTL
         if (UIView.userInterfaceLayoutDirectionForSemanticContentAttribute(view.semanticContentAttribute) == UIUserInterfaceLayoutDirection.RightToLeft) {
-            centerVCExpandedOffset = 100
-            gestureRecognizerShouldBegin(panGestureRecognizer)
+            centerVCExpandedOffset = 200
         }
         
         
     }
     
     
+    
     func handlePanGesture(recognizer: UIPanGestureRecognizer){
         
         let userIsDraggingFromLeftToRight = recognizer.velocityInView(view).x > 0
         if (UIView.userInterfaceLayoutDirectionForSemanticContentAttribute(view.semanticContentAttribute) == UIUserInterfaceLayoutDirection.RightToLeft) {
+            //            userIsDraggingFromLeftToRight = recognizer.velocityInView(view).x < 0
             
         }
-
+        
         switch(recognizer.state) {
         case .Began:
             if (currentState == .panelCollapsed) {
+                
                 if userIsDraggingFromLeftToRight {
+                    if (UIView.userInterfaceLayoutDirectionForSemanticContentAttribute(view.semanticContentAttribute) == UIUserInterfaceLayoutDirection.LeftToRight) {
                     addLeftPanelViewController()
                     showShadowForCenterViewController(true)
+                    }
                 }else{
-                   
+                    if (UIView.userInterfaceLayoutDirectionForSemanticContentAttribute(view.semanticContentAttribute) == UIUserInterfaceLayoutDirection.RightToLeft) {
+                        addLeftPanelViewController()
+                        showShadowForCenterViewController(true)
+                        
+                    }
                 }
             }
         case .Changed :
             
             if userIsDraggingFromLeftToRight{
+                
+                if (UIView.userInterfaceLayoutDirectionForSemanticContentAttribute(view.semanticContentAttribute) == UIUserInterfaceLayoutDirection.LeftToRight) {
+                    
 
                 let x = recognizer.view!.center.x + recognizer.translationInView(view).x
                 if x - recognizer.view!.frame.size.width / 2.0 < 0 {
@@ -89,35 +100,76 @@ class ContainerVC: UIViewController, CenterVCDelegate, UIGestureRecognizerDelega
                 if recognizer.velocityInView(view).x < userDragLeftToRightValue{
                     currentState = .panelExpanded
                 }
-                
+                }
                 
             }else if currentState == .panelExpanded{
                 
-                let x = recognizer.view!.center.x + recognizer.translationInView(view).x
-                if x - recognizer.view!.frame.size.width / 2.0 < 0 {
-                    recognizer.view!.center.x = recognizer.view!.frame.size.width / 2.0
-                    break
+                     if (UIView.userInterfaceLayoutDirectionForSemanticContentAttribute(view.semanticContentAttribute) == UIUserInterfaceLayoutDirection.RightToLeft) {
+//                        
+//                        let x = recognizer.view!.center.x + fabs(recognizer.translationInView(view).x)
+//                        print(x)
+//                        //this is the issue now
+//                        print(x - recognizer.view!.frame.size.width / 2.0)
+//                        if x - recognizer.view!.frame.size.width / 2.0 > 150    {
+//                            recognizer.view!.center.x = recognizer.view!.frame.size.width / 2.0
+//                            break
+//                        }
+//                        recognizer.view!.center.x = fabs(x)
+//                        recognizer.setTranslation(CGPointZero, inView: view)
+                        
+                        
+                     }else{
+                        if (UIView.userInterfaceLayoutDirectionForSemanticContentAttribute(view.semanticContentAttribute) == UIUserInterfaceLayoutDirection.LeftToRight) {
+                        let x = recognizer.view!.center.x + recognizer.translationInView(view).x
+                        if x - recognizer.view!.frame.size.width / 2.0 < 0 {
+                            recognizer.view!.center.x = recognizer.view!.frame.size.width / 2.0
+                            break
+                        }
+                        recognizer.view!.center.x = x
+                        recognizer.setTranslation(CGPointZero, inView: view)
+                        }
                 }
-                recognizer.view!.center.x = x
-                recognizer.setTranslation(CGPointZero, inView: view)
+                
+                
                 
                 
             }else {
-            
+                
+                // done for RTL
+                
+                addLeftPanelViewController()
+                showShadowForCenterViewController(true)
             }
-        
-        
+            
+            
         case .Ended:
             if leftPanelVC != nil{
-                let viewMovedMoreThanHalfWay = recognizer.view!.center.x > view.bounds.width
-                animateLeftPanel(viewMovedMoreThanHalfWay)
+                
+                
+                 if (UIView.userInterfaceLayoutDirectionForSemanticContentAttribute(view.semanticContentAttribute) == UIUserInterfaceLayoutDirection.RightToLeft) {
+                    if currentState == .panelCollapsed{
+                    let viewMovedMoreThanHalfWay = recognizer.view!.center.x < view.bounds.width
+                    
+                    animateLeftPanel(viewMovedMoreThanHalfWay)
+                    }else{
+                        
+                        let viewMovedMoreThanHalfWay = recognizer.view!.center.x > view.bounds.width
+                        if recognizer.velocityInView(view).x > 0 {
+                        
+                        animateLeftPanel(viewMovedMoreThanHalfWay)
+                        }
+                    }
+                 }else{
+                    let viewMovedMoreThanHalfWay = recognizer.view!.center.x > view.bounds.width
+                    animateLeftPanel(viewMovedMoreThanHalfWay)
+                }
             }
-        
+            
         default:
             break
         }
     }
-
+    
     
     //MARK: Animation Functions
     func animateCenterPanelXPosition(targetPosition targetPosition: CGFloat, completion: ((Bool) -> Void)! = nil) {
@@ -139,6 +191,7 @@ class ContainerVC: UIViewController, CenterVCDelegate, UIGestureRecognizerDelega
         }
     }
     
+    // good for RTL
     func animateLeftPanel(shouldExpand: Bool) {
         if shouldExpand{
             
@@ -153,7 +206,7 @@ class ContainerVC: UIViewController, CenterVCDelegate, UIGestureRecognizerDelega
             }
         }
     }
-
+    
     
     //MARK: Delegate Functions
     func togglePanel(){
@@ -180,18 +233,6 @@ class ContainerVC: UIViewController, CenterVCDelegate, UIGestureRecognizerDelega
         
     }
     
-    
-    //MARK: RTL
-
-    func gestureRecognizerShouldBegin(gestureRecognizer: UIGestureRecognizer) -> Bool {
-        if let panGestureRecognizer = gestureRecognizer as? UIPanGestureRecognizer {
-            let translation = panGestureRecognizer.translationInView(view).x
-            let isLeftToRightLayout = UIView.userInterfaceLayoutDirectionForSemanticContentAttribute(view.semanticContentAttribute) == .LeftToRight
-            return isLeftToRightLayout ? translation > 0 : translation < 0
-        }else{
-            return false    
-        }
-    }
 }
 
 
